@@ -1,41 +1,94 @@
-#include "InternetButton.h"
+// This #include statement was automatically added by the Particle IDE.
+#include <InternetButton.h>
+
 #include "math.h"
 
-/* Did you know that the Internet Button can detect if it's moving? It's true!
-Specifically it can read when it's being accelerated. Recall that gravity
-is a constant acceleration and this becomes very useful- you know the orientation!*/
-
-InternetButton b = InternetButton();
 int ledPos = 0;
+int lightsOn = 0;
+int brightness = 10;
+int r = 0;
+int g = 255;
+int b = 0;
+
+InternetButton sb = InternetButton();
 
 void setup()
 {
-  // Tell b to get everything ready to go
-  // Use b.begin(1); if you have the original SparkButton, which does not have a buzzer or a plastic enclosure
-  // to use, just add a '1' between the parentheses in the code below.
-  b.begin();
-
-  // reduce to less than full eye-blazing brightness
-  b.setBrightness(95);
+  sb.begin(1);
+  sb.setBrightness(brightness);
 
   Particle.variable("ledPos", ledPos);
+  Particle.variable("lightsOn", lightsOn);
+  Particle.variable("brightness", brightness);
+  Particle.function("toggleLights", toggleLights);
+  Particle.function("setBrightness", setBrightness);
 }
 
 void loop()
 {
-  // previous LED off (or 'null' LED0 off the first time through)
-  b.ledOn(ledPos, 0, 0, 0);
+  if (lightsOn)
+  {
+    for (int i = 0; i < 256; i++)
+    {
+      rainbow(i, 5);
+      sb.ledOn(1, r, g, b);
+    }
+  }
+  else
+  {
+    sb.allLedsOff();
+  }
+}
 
-  // Want to figure out which LED is the lowest?
-  // We've hidden the necessary trigonometry in this function.
-  ledPos = b.lowestLed();
+int toggleLights(String command)
+{
+  lightsOn = !lightsOn;
+}
 
-  // give some time for human retinal response
-  delay(330);
+int setBrightness(String command)
+{
+  char inputStr[10];
+  command.toCharArray(inputStr, 10);
+  int i = atoi(inputStr);
 
-  // Now turn the lowest LED on
-  b.ledOn(ledPos, 0, 30, 30);
+  if (i > 100)
+  {
+    brightness = 100;
+  }
+  else if (i < 10)
+  {
+    brightness = 10;
+  }
+  else
+  {
+    brightness = i;
+  }
 
-  // Wait a mo'
-  delay(330);
+  sb.setBrightness(i);
+}
+
+void rainbow(uint8_t wheelPos, uint8_t wait)
+{
+  if (wheelPos < 85)
+  {
+    r = wheelPos * 3;
+    g = 255 - wheelPos * 3;
+    b = 0;
+  }
+  else if (wheelPos < 170)
+  {
+    wheelPos -= 85;
+    r = 255 - wheelPos * 3;
+    g = 0;
+    b = wheelPos * 3;
+  }
+  else
+  {
+    wheelPos -= 170;
+    r = 0;
+    g = wheelPos * 3;
+    b = 255 - wheelPos * 3;
+  }
+
+  delay(wait);
 }
