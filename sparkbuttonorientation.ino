@@ -10,6 +10,8 @@ int brightness = 10;
 int r = 0;
 int g = 255;
 int b = 0;
+int wheelPos = 0;
+double degreesDown = 0.0;
 
 InternetButton sb = InternetButton();
 
@@ -21,6 +23,7 @@ void setup()
   Particle.variable("ledPos", ledPos);
   Particle.variable("lightsOn", lightsOn);
   Particle.variable("brightness", brightness);
+  Particle.variable("degreesDown", degreesDown);
   Particle.function("toggleLights", toggleLights);
   Particle.function("setBrightness", setBrightness);
 }
@@ -36,16 +39,16 @@ void loop()
 
   if (lightsOn)
   {
-    for (int i = 0; i < 256; i++)
-    {
-      rainbow(i, 5);
-      sb.ledOn(ledPos, r, g, b);
-    }
+    rainbow(wheelPos, 50);
+    wheelPos = wheelPos + 1 % 256;
+    sb.ledOn(ledPos, r, g, b);
   }
   else
   {
     sb.allLedsOff();
   }
+
+  degreesDown = degreesPointedDown(sb.readX16(), sb.readY16());
 }
 
 int toggleLights(String command)
@@ -116,4 +119,9 @@ void turnOffAllLedsBut(uint8_t led)
       sb.ledOff(i);
     }
   }
+}
+
+double degreesPointedDown(int x, int y)
+{
+  return (int)((atan2(x, y) * 180.0 / M_PI) + 360) % 360;
 }
