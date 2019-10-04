@@ -4,6 +4,7 @@
 #include "math.h"
 
 int ledPos = 0;
+int prevLedPos = 0;
 int lightsOn = 0;
 int brightness = 10;
 int r = 0;
@@ -26,12 +27,19 @@ void setup()
 
 void loop()
 {
+  ledPos = sb.lowestLed();
+  if (ledPos != prevLedPos)
+  {
+    turnOffAllLedsBut(ledPos);
+    prevLedPos = ledPos;
+  }
+
   if (lightsOn)
   {
     for (int i = 0; i < 256; i++)
     {
       rainbow(i, 5);
-      sb.ledOn(1, r, g, b);
+      sb.ledOn(ledPos, r, g, b);
     }
   }
   else
@@ -43,6 +51,7 @@ void loop()
 int toggleLights(String command)
 {
   lightsOn = !lightsOn;
+  return 0;
 }
 
 int setBrightness(String command)
@@ -65,6 +74,7 @@ int setBrightness(String command)
   }
 
   sb.setBrightness(i);
+  return 0;
 }
 
 void rainbow(uint8_t wheelPos, uint8_t wait)
@@ -91,4 +101,19 @@ void rainbow(uint8_t wheelPos, uint8_t wait)
   }
 
   delay(wait);
+}
+
+void turnOffAllLedsBut(uint8_t led)
+{
+  for (int i = 0; i <= PIXEL_COUNT; i++)
+  {
+    if (i == led)
+    {
+      continue;
+    }
+    else
+    {
+      sb.ledOff(i);
+    }
+  }
 }
